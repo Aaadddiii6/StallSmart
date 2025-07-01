@@ -1,38 +1,136 @@
-.App {
+@font-face {
+  font-family: "f1";
+  src: url("./fonts/Burgundia_PERSONAL_USE_ONLY.otf") format("opentype");
+}
+@font-face {
+  font-family: "f2";
+  src: url("./fonts/DemoTheMorydane.otf") format("opentype");
+}
+@font-face {
+  font-family: "f3";
+  src: url("./fonts/FleceDisplay.ttf") format("truetype");
+}
+@font-face {
+  font-family: "f4";
+  src: url("./fonts/FOODCANPERSONALUSE.ttf") format("truetype");
+}
+@font-face {
+  font-family: "f5";
+  src: url("./fonts/MevaraTrial-Regular.otf") format("opentype");
+}
+
+/* Optional override font-family name for direct reference */
+@font-face {
+  font-family: "f3";
+  src: url("./fonts/FleceDisplay.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background-color: #000;
+  color: #fff;
+}
+.card {
+  background: #2b2b29; /* Yellow */
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1); /* Subtle white shadow */
+  margin: 12px auto;
+  width: 95%;
+  max-width: 480px;
+  box-sizing: border-box;
+}
+
+
+
+.title {
+  font-size: 24px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/*button {
+  background-color: black;
+  color: yellow;
+  border: 2px solid yellow;
+  font-weight: bold;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}*/
+
+.poster-section {
+  margin-top: 40px;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+canvas {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  margin-top: 20px;
+  border: 1px solid #ccc;
 }
+@media (max-width: 600px) {
+  .card {
+    width: 95%;
+    padding: 12px;
+    margin: 10px auto;
+  }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+  input[type="range"]
+  input[type="range"],
+  input[type="file"],
+  input[type="text"],
+  select  {
+    width: 100%;
   }
 }
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.yellow-card {
+  background: #2b2b29;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.15); /* subtle white shadow */
+  margin: 12px auto;
+  width: 95%;
+  max-width: 500px;
   display: flex;
   flex-direction: column;
+  gap: 10px;
+}
+
+
+.yellow-card h2 {
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+input[type="file"],
+input[type="text"],
+select,
+input[type="range"],
+input[type="color"],
+input[type="number"] {
+  margin-bottom: 10px;
+  display: block;
+  width: 100%;
+}
+
+button {
+  padding: 10px 16px;
+  background-color: #fffb1d;
+  color: rgb(0, 0, 0);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.output-card {
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  text-align: center;
+  padding: 10px;
 }
