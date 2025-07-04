@@ -47,6 +47,8 @@ function App() {
   const [taglineFont, setTaglineFont] = useState("f1");
   const [taglineColor, setTaglineColor] = useState("#fce903");
   const [templateId, setTemplateId] = useState("template1");
+  const [removeBg, setRemoveBg] = useState(true);
+
 
   const [renderformImageUrl, setRenderformImageUrl] = useState(null);
 
@@ -60,28 +62,39 @@ function App() {
 
   const handleGenerate = async () => {
     if (!vendorFile && !productFile) {
-      alert(
-        "Please upload at least one image (vendor or product) and enter the shop name"
-      );
+      alert("Please upload at least one image (vendor or product) and enter the shop name");
       return;
     }
     if (!shopName) {
       alert("Please enter the shop name");
       return;
     }
-
+  
     try {
-      const vUrl = await removeBgWithPixian(vendorFile);
-      const pUrl = await removeBgWithPixian(productFile);
-
+      let vUrl = null;
+      let pUrl = null;
+  
+      if (vendorFile) {
+        vUrl = removeBg
+          ? await removeBgWithPixian(vendorFile)
+          : URL.createObjectURL(vendorFile);
+      }
+  
+      if (productFile) {
+        pUrl = removeBg
+          ? await removeBgWithPixian(productFile)
+          : URL.createObjectURL(productFile);
+      }
+  
       setVendorImgUrl(vUrl);
       setProductImgUrl(pUrl);
       setPosterKey((prev) => prev + 1);
     } catch (err) {
-      alert("Image background removal failed");
+      alert("Image processing failed");
       console.error(err);
     }
   };
+  
 
   const handleRegenerate = () => {
     setPosterKey((prev) => prev + 1);
@@ -124,6 +137,16 @@ function App() {
           value={tagline}
           onChange={(e) => setTagline(e.target.value)}
         />
+        <label>
+        <input
+        type="checkbox"
+        checked={removeBg}
+        onChange={(e) => setRemoveBg(e.target.checked)}
+        style={{ marginRight: "6px" }}
+        />
+  Remove Background
+</label>
+
       </div>
 
       {/* 📏 SIZE CONTROL CARD */}
