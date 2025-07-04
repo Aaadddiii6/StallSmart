@@ -2,7 +2,30 @@ import { useState } from "react";
 import { removeBgWithPixian } from "./utils/removeBg";
 import PosterCanvas from "./components/PosterCanvas";
 import "./App.css";
+
 import bgImage from "./assets/background.png";
+import { generateRenderformMockup } from "./utils/renderformAPI";
+
+/*import { removeBgWithReplicate } from "./utils/removeBgWithReplicate";*/
+function getPosterDataUrl() {
+  const canvas = document.querySelector(".canvas-preview");
+  return canvas.toDataURL("image/png");
+}
+async function uploadToImgBB(base64Image) {
+  const form = new FormData();
+  form.append("image", base64Image.split(",")[1]); // removes data:image/png;base64,
+
+  const res = await fetch(
+    "https://api.imgbb.com/1/upload?key=f594d149ac56f692bf1735dfa48310cb",
+    {
+      method: "POST",
+      body: form,
+    }
+  );
+
+  const data = await res.json();
+  return data.data.url;
+}
 
 function App() {
   const [vendorFile, setVendorFile] = useState(null);
@@ -18,6 +41,15 @@ function App() {
   const [fontFamily, setFontFamily] = useState("f1");
   const [lineHeight, setLineHeight] = useState(80);
   const [textAlign, setTextAlign] = useState("center");
+  const [vendorPosition, setVendorPosition] = useState({ x: 40, y: 350 });
+  const [productPosition, setProductPosition] = useState({ x: 320, y: 400 });
+  const [tagline, setTagline] = useState("");
+  const [taglineFont, setTaglineFont] = useState("f1");
+  const [taglineColor, setTaglineColor] = useState("#fce903");
+  const [templateId, setTemplateId] = useState("template1");
+
+  const [renderformImageUrl, setRenderformImageUrl] = useState(null);
+
   const [textShadow, setTextShadow] = useState({
     enabled: true,
     color: "#000000",
@@ -28,18 +60,20 @@ function App() {
 
   const handleGenerate = async () => {
     if (!vendorFile && !productFile) {
-      alert("Please upload at least one image (vendor or product) and enter the shop name");
+      alert(
+        "Please upload at least one image (vendor or product) and enter the shop name"
+      );
       return;
     }
     if (!shopName) {
       alert("Please enter the shop name");
       return;
-    
     }
 
     try {
       const vUrl = await removeBgWithPixian(vendorFile);
       const pUrl = await removeBgWithPixian(productFile);
+
       setVendorImgUrl(vUrl);
       setProductImgUrl(pUrl);
       setPosterKey((prev) => prev + 1);
@@ -84,44 +118,95 @@ function App() {
           value={shopName}
           onChange={(e) => setShopName(e.target.value)}
         />
+        <input
+          type="text"
+          placeholder="Enter Tagline (optional)"
+          value={tagline}
+          onChange={(e) => setTagline(e.target.value)}
+        />
       </div>
 
       {/* 📏 SIZE CONTROL CARD */}
-      <div className="yellow-card">
-        <h2>Adjust Image Sizes</h2>
-        <label>Vendor Image Size:</label>
-        <input
-          type="range"
-          min="0.5"
-          max="5"
-          step="0.1"
-          value={vendorScale}
-          onChange={(e) => setVendorScale(Number(e.target.value))}
-        />
-
-        <label>Product Image Size:</label>
-        <input
-          type="range"
-          min="0.5"
-          max="5"
-          step="0.1"
-          value={productScale}
-          onChange={(e) => setProductScale(Number(e.target.value))}
-        />
-      </div>
 
       {/* 🎨 FONT STYLE CARD */}
       <div className="yellow-card">
         <h2>Text Styling</h2>
 
-        <label>Font Style:</label>
-        <select value={fontFamily} onChange={(e) => setFontFamily(e.target.value)}>
-          <option value="f1">f1</option>
-          <option value="f2">f2</option>
-          <option value="f3">f3</option>
-          <option value="f4">f4</option>
-          <option value="f5">f5</option>
-        </select>
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <div>
+            <label>Shop Font:</label>
+            <select
+              value={fontFamily}
+              onChange={(e) => setFontFamily(e.target.value)}
+              style={{ width: "100px" }}
+            >
+              <option value="f1">f1</option>
+              <option value="f2">f2</option>
+              <option value="f3">f3</option>
+              <option value="f4">f4</option>
+              <option value="f5">f5</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Tagline Font:</label>
+            <select
+              value={taglineFont}
+              onChange={(e) => setTaglineFont(e.target.value)}
+              style={{ width: "100px" }}
+            >
+              <option value="f1">f1</option>
+              <option value="f2">f2</option>
+              <option value="f3">f3</option>
+              <option value="f4">f4</option>
+              <option value="f5">f5</option>
+            </select>
+          </div>
+          <div>
+            <label>Template:</label>
+            <select
+              value={templateId}
+              onChange={(e) => setTemplateId(e.target.value)}
+              style={{ width: "120px" }}
+            >
+              <option value="template1">Template 1</option>
+              <option value="template2">Template 2</option>
+              <option value="template3">Template 3</option>
+              <option value="template4">Template 4</option>
+              <option value="template5">Template 5</option>
+              <option value="template6">Template 6</option>
+            </select>
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            alignItems: "center",
+            marginTop: "10px",
+          }}
+        >
+          <div>
+            <label>Shop Color:</label>
+            <input
+              type="color"
+              value={fontColor}
+              onChange={(e) => setFontColor(e.target.value)}
+              style={{ width: "50px" }}
+            />
+          </div>
+
+          <div>
+            <label>Tagline Color:</label>
+            <input
+              type="color"
+              value={taglineColor}
+              onChange={(e) => setTaglineColor(e.target.value)}
+              style={{ width: "50px" }}
+            />
+          </div>
+        </div>
 
         <label>Font Size: {fontSize}px</label>
         <input
@@ -144,18 +229,14 @@ function App() {
         />
 
         <label>Text Align:</label>
-        <select value={textAlign} onChange={(e) => setTextAlign(e.target.value)}>
+        <select
+          value={textAlign}
+          onChange={(e) => setTextAlign(e.target.value)}
+        >
           <option value="left">Left</option>
           <option value="center">Center</option>
           <option value="right">Right</option>
         </select>
-
-        <label>Font Color:</label>
-        <input
-          type="color"
-          value={fontColor}
-          onChange={(e) => setFontColor(e.target.value)}
-        />
       </div>
 
       {/* 🌫️ SHADOW SETTINGS */}
@@ -173,28 +254,186 @@ function App() {
         </label>
 
         {textShadow.enabled && (
-          <>
-            <label>Shadow Color:</label>
-            <input
-              type="color"
-              value={textShadow.color}
-              onChange={(e) =>
-                setTextShadow({ ...textShadow, color: e.target.value })
-              }
-            />
-            <label>Blur:</label>
-            <input
-              type="number"
-              min="0"
-              max="10"
-              value={textShadow.blur}
-              onChange={(e) =>
-                setTextShadow({ ...textShadow, blur: parseInt(e.target.value) })
-              }
-            />
-          </>
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+              alignItems: "center",
+              marginTop: "10px",
+            }}
+          >
+            <div>
+              <label>Shadow Color:</label>
+              <br />
+              <input
+                type="color"
+                value={textShadow.color}
+                onChange={(e) =>
+                  setTextShadow({ ...textShadow, color: e.target.value })
+                }
+                style={{ width: "50px" }}
+              />
+            </div>
+
+            <div>
+              <label>Blur:</label>
+              <br />
+              <input
+                type="number"
+                min="0"
+                max="10"
+                value={textShadow.blur}
+                onChange={(e) =>
+                  setTextShadow({
+                    ...textShadow,
+                    blur: parseInt(e.target.value),
+                  })
+                }
+                style={{ width: "60px" }}
+              />
+            </div>
+          </div>
         )}
+
         <button onClick={handleGenerate}>Generate Poster</button>
+      </div>
+      {/* 📏 SIZE + POSITION CONTROL CARD */}
+      <div className="yellow-card">
+        <h2>Adjust Image Sizes & Positions</h2>
+
+        {/* Vendor Controls */}
+        <div style={{ marginBottom: "15px" }}>
+          <label>Vendor Image Size:</label>
+          <input
+            type="range"
+            min="0.5"
+            max="5"
+            step="0.1"
+            value={vendorScale}
+            onChange={(e) => setVendorScale(Number(e.target.value))}
+          />
+        </div>
+
+        {/* Product Controls */}
+        <div style={{ marginBottom: "15px" }}>
+          <label>Product Image Size:</label>
+          <input
+            type="range"
+            min="0.5"
+            max="5"
+            step="0.1"
+            value={productScale}
+            onChange={(e) => setProductScale(Number(e.target.value))}
+          />
+        </div>
+
+        {/* Arrow Controls Side-by-Side */}
+        <div
+          style={{
+            display: "flex",
+            gap: "40px",
+            justifyContent: "center",
+            marginTop: "10px",
+          }}
+        >
+          {/* Vendor Arrows */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "5px",
+            }}
+          >
+            <strong>Vendor Position</strong>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "40px 40px 40px",
+                gap: "5px",
+              }}
+            >
+              <div></div>
+              <button
+                onClick={() => setVendorPosition((p) => ({ ...p, y: p.y - 5 }))}
+              >
+                ⬆️
+              </button>
+              <div></div>
+              <button
+                onClick={() => setVendorPosition((p) => ({ ...p, x: p.x - 5 }))}
+              >
+                ⬅️
+              </button>
+              <div></div>
+              <button
+                onClick={() => setVendorPosition((p) => ({ ...p, x: p.x + 5 }))}
+              >
+                ➡️
+              </button>
+              <div></div>
+              <button
+                onClick={() => setVendorPosition((p) => ({ ...p, y: p.y + 5 }))}
+              >
+                ⬇️
+              </button>
+              <div></div>
+            </div>
+          </div>
+
+          {/* Product Arrows */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "5px",
+            }}
+          >
+            <strong>Product Position</strong>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "40px 40px 40px",
+                gap: "5px",
+              }}
+            >
+              <div></div>
+              <button
+                onClick={() =>
+                  setProductPosition((p) => ({ ...p, y: p.y - 5 }))
+                }
+              >
+                ⬆️
+              </button>
+              <div></div>
+              <button
+                onClick={() =>
+                  setProductPosition((p) => ({ ...p, x: p.x - 5 }))
+                }
+              >
+                ⬅️
+              </button>
+              <div></div>
+              <button
+                onClick={() =>
+                  setProductPosition((p) => ({ ...p, x: p.x + 5 }))
+                }
+              >
+                ➡️
+              </button>
+              <div></div>
+              <button
+                onClick={() =>
+                  setProductPosition((p) => ({ ...p, y: p.y + 5 }))
+                }
+              >
+                ⬇️
+              </button>
+              <div></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 🖼️ OUTPUT SECTION */}
@@ -213,14 +452,72 @@ function App() {
             textShadow={textShadow}
             fontSize={fontSize}
             fontFamily={fontFamily}
+            taglineFont={taglineFont}
+            taglineColor={taglineColor}
             fontColor={fontColor}
+            vendorPosition={vendorPosition}
+            productPosition={productPosition}
+            tagline={tagline}
+            templateId={templateId}
           />
-          <div style={{ display: "flex", gap: "12px", justifyContent: "center", marginTop: "10px" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+              justifyContent: "center",
+              marginTop: "10px",
+            }}
+          >
             <button onClick={handleRegenerate}>Regenerate Poster</button>
-            {/* Add your download button here if needed */}
+            <div
+              style={{ display: "flex", gap: "10px", justifyContent: "center" }}
+            >
+              <button
+                onClick={async () => {
+                  const posterDataUrl = getPosterDataUrl(); // 1️⃣ Get canvas image
+                  const publicUrl = await uploadToImgBB(posterDataUrl); // 2️⃣ Upload to ImgBB
+                  // 3️⃣ Save poster URL
+
+                  const businessCardUrl = await generateRenderformMockup({
+                    vendorImg: vendorImgUrl,
+                    bgImg: publicUrl,
+                    tagline: tagline,
+                    shopName: shopName,
+                  });
+
+                  setRenderformImageUrl(businessCardUrl); // 4️⃣ Save mockup URL
+
+                  const link = document.createElement("a"); // 5️⃣ Download poster locally
+                  link.href = posterDataUrl;
+                  link.download = "poster.png";
+                  link.click();
+                }}
+              >
+                Download Poster
+              </button>
+
+            </div>
           </div>
         </div>
       )}
+      
+      {renderformImageUrl && (
+                <div className="yellow-card output-card">
+                  <h2>Business Card Mockup</h2>
+                  <img
+                    src={renderformImageUrl}
+                    alt="Business Card"
+                    style={{
+                      width: "100%",
+                      maxWidth: "500px",
+                      borderRadius: "12px",
+                    }}
+                  />
+                  <a href={renderformImageUrl} download="business_card.png">
+                    <button>Download Business Card</button>
+                  </a>
+                </div>
+              )}
     </div>
   );
 }

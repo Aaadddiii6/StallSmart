@@ -1,23 +1,25 @@
 import { useEffect, useRef } from "react";
 
 function PosterCanvas({
-    vendorImg,
-    productImg,
-    shopName,
-    vendorScale,
-    productScale,
-    vendorX = 60,
-    vendorY = 400,
-    productX = 420,
-    productY = 400,
-    lineHeight,
-    textAlign,
-    textShadow,
-    fontSize,
-    fontFamily,
-    fontColor
-  }) 
-   {
+  tagline,
+  vendorImg,
+  productImg,
+  shopName,
+  vendorScale,
+  productScale,
+  vendorPosition,
+  productPosition,
+  lineHeight,
+  textAlign,
+  textShadow,
+  fontSize,
+  fontFamily,
+  fontColor,
+  taglineFont,
+  taglineColor,
+  templateId,
+  onExportImage, // ✅ new prop
+}) {
   const canvasRef = useRef();
 
   function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
@@ -39,6 +41,7 @@ function PosterCanvas({
     }
 
     ctx.fillText(line, x, currentY);
+    return currentY + lineHeight;
   }
 
   useEffect(() => {
@@ -50,9 +53,9 @@ function PosterCanvas({
       await document.fonts.load(`${fontSize}px '${fontFamily}'`);
 
       const bg = new Image();
-      bg.src = "/backgrounds/template1.png";
+      bg.src = `/backgrounds/${templateId}.png`;
+
       bg.onload = () => {
-        ctx.fillStyle = fontColor || "#fce903";
         ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
 
         const vendor = new Image();
@@ -60,28 +63,36 @@ function PosterCanvas({
         vendor.onload = () => {
           const vendorWidth = 120 * vendorScale;
           const vendorHeight = 160 * vendorScale;
-          const boundedVendorX = Math.min(Math.max(0, vendorX), canvas.width - vendorWidth);
-          const boundedVendorY = Math.min(Math.max(0, vendorY), canvas.height - vendorHeight);
 
-          ctx.drawImage(vendor, boundedVendorX, boundedVendorY, vendorWidth, vendorHeight);
+          ctx.drawImage(
+            vendor,
+            vendorPosition?.x || 0,
+            vendorPosition?.y || 0,
+            vendorWidth,
+            vendorHeight
+          );
 
           const product = new Image();
           product.src = productImg;
           product.onload = () => {
             const productWidth = 120 * productScale;
             const productHeight = 120 * productScale;
-            const boundedProductX = Math.min(Math.max(0, productX), canvas.width - productWidth);
-            const boundedProductY = Math.min(Math.max(0, productY), canvas.height - productHeight);
 
-            ctx.drawImage(product, boundedProductX, boundedProductY, productWidth, productHeight);
+            ctx.drawImage(
+              product,
+              productPosition?.x || 0,
+              productPosition?.y || 0,
+              productWidth,
+              productHeight
+            );
 
-            // 🖍 Font & color
+            // ✏️ Text styles
             ctx.font = `bold ${fontSize}px '${fontFamily}'`;
-            ctx.fillStyle = "#fce903";
+            ctx.fillStyle = fontColor || "#fce903";
             ctx.textAlign = textAlign;
             ctx.textBaseline = "top";
 
-            // 🌫️ Shadow
+            // 🌫 Shadow
             if (textShadow?.enabled) {
               ctx.shadowColor = textShadow.color;
               ctx.shadowBlur = textShadow.blur;
@@ -94,8 +105,8 @@ function PosterCanvas({
               ctx.shadowOffsetY = 0;
             }
 
-            // 🎯 Positioning
-            let textX =
+            // 📍 Text position
+            const textX =
               textAlign === "left"
                 ? 50
                 : textAlign === "right"
@@ -103,8 +114,34 @@ function PosterCanvas({
                 : canvas.width / 2;
             const textY = 40;
 
-            // 📝 Wrap text
-            wrapText(ctx, shopName, textX, textY, 500, lineHeight);
+            const taglineStartY = wrapText(
+              ctx,
+              shopName,
+              textX,
+              textY,
+              500,
+              lineHeight
+            );
+
+            // ✨ Tagline
+            if (tagline) {
+              ctx.font = `normal ${fontSize * 0.4}px '${taglineFont}'`;
+              ctx.fillStyle = taglineColor || "#fce903";
+              wrapText(
+                ctx,
+                tagline,
+                textX,
+                taglineStartY,
+                500,
+                lineHeight * 0.6
+              );
+            }
+
+            // 🖼️ Export Image
+            if (onExportImage) {
+              const dataUrl = canvas.toDataURL("image/png");
+              onExportImage(dataUrl); // 👈 pass base64 URL back to parent
+            }
           };
         };
       };
@@ -115,6 +152,10 @@ function PosterCanvas({
     vendorImg,
     productImg,
     shopName,
+    tagline,
+    taglineFont,
+    taglineColor,
+    templateId,
     vendorScale,
     productScale,
     lineHeight,
@@ -123,10 +164,9 @@ function PosterCanvas({
     fontSize,
     fontFamily,
     fontColor,
-    vendorX,
-  vendorY,
-  productX,
-  productY, 
+    vendorPosition,
+    productPosition,
+    onExportImage, // 👈 trigger redraw on change
   ]);
 
   return (

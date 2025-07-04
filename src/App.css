@@ -134,3 +134,11 @@ button {
   text-align: center;
   padding: 10px;
 }
+.yellow-card button {
+  padding: 6px 12px;
+  font-size: 16px;
+  border-radius: 4px;
+  background-color: #ffd700;
+  border: 1px solid #999;
+  cursor: pointer;
+}
