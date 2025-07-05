@@ -1,4 +1,10 @@
 import { useEffect, useRef } from "react";
+function hexToRGBA(hex, alpha = 1) {
+  const r = parseInt(hex.substring(1, 3), 16);
+  const g = parseInt(hex.substring(3, 5), 16);
+  const b = parseInt(hex.substring(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 function PosterCanvas({
   tagline,
@@ -9,6 +15,10 @@ function PosterCanvas({
   productScale,
   vendorPosition,
   productPosition,
+  vendorX = 60,
+  vendorY = 400,
+  productX = 420,
+  productY = 400,
   lineHeight,
   textAlign,
   textShadow,
@@ -18,7 +28,7 @@ function PosterCanvas({
   taglineFont,
   taglineColor,
   templateId,
-  onExportImage, // ✅ new prop
+  imgShadow 
 }) {
   const canvasRef = useRef();
 
@@ -41,7 +51,7 @@ function PosterCanvas({
     }
 
     ctx.fillText(line, x, currentY);
-    return currentY + lineHeight;
+    return currentY + lineHeight; // 👈 return next Y position
   }
 
   useEffect(() => {
@@ -54,8 +64,8 @@ function PosterCanvas({
 
       const bg = new Image();
       bg.src = `/backgrounds/${templateId}.png`;
-
       bg.onload = () => {
+        ctx.fillStyle = fontColor || "#fce903";
         ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
 
         const vendor = new Image();
@@ -64,6 +74,24 @@ function PosterCanvas({
           const vendorWidth = 120 * vendorScale;
           const vendorHeight = 160 * vendorScale;
 
+          if (imgShadow?.enabled) {
+            const alphaColor = hexToRGBA(imgShadow.color, imgShadow.alpha ?? 1);
+            const angleRad = ((imgShadow.angle ?? 45) * Math.PI) / 180;
+            const offsetX = Math.round(Math.cos(angleRad) * (imgShadow.distance ?? 10));
+            const offsetY = Math.round(Math.sin(angleRad) * (imgShadow.distance ?? 10));
+          
+            ctx.shadowColor = alphaColor;
+            ctx.shadowBlur = imgShadow.blur ?? 20;
+            ctx.shadowOffsetX = offsetX;
+            ctx.shadowOffsetY = offsetY;
+          }
+           else {
+            ctx.shadowColor = "transparent";
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+          }
+          
           ctx.drawImage(
             vendor,
             vendorPosition?.x || 0,
@@ -71,6 +99,13 @@ function PosterCanvas({
             vendorWidth,
             vendorHeight
           );
+          
+          // Reset shadow so it doesn't affect product or text
+          ctx.shadowColor = "transparent";
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+          
 
           const product = new Image();
           product.src = productImg;
@@ -78,6 +113,24 @@ function PosterCanvas({
             const productWidth = 120 * productScale;
             const productHeight = 120 * productScale;
 
+            if (imgShadow?.enabled) {
+              const alphaColor = hexToRGBA(imgShadow.color, imgShadow.alpha ?? 1);
+              const angleRad = ((imgShadow.angle ?? 45) * Math.PI) / 180;
+              const offsetX = Math.round(Math.cos(angleRad) * (imgShadow.distance ?? 10));
+              const offsetY = Math.round(Math.sin(angleRad) * (imgShadow.distance ?? 10));
+            
+              ctx.shadowColor = alphaColor;
+              ctx.shadowBlur = imgShadow.blur ?? 20;
+              ctx.shadowOffsetX = offsetX;
+              ctx.shadowOffsetY = offsetY;
+            }
+            else {
+              ctx.shadowColor = "transparent";
+              ctx.shadowBlur = 0;
+              ctx.shadowOffsetX = 0;
+              ctx.shadowOffsetY = 0;
+            }
+            
             ctx.drawImage(
               product,
               productPosition?.x || 0,
@@ -85,14 +138,21 @@ function PosterCanvas({
               productWidth,
               productHeight
             );
+            
+            // Reset again to avoid affecting next elements
+            ctx.shadowColor = "transparent";
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+            
 
-            // ✏️ Text styles
+            // 🖍 Font & color
             ctx.font = `bold ${fontSize}px '${fontFamily}'`;
             ctx.fillStyle = fontColor || "#fce903";
             ctx.textAlign = textAlign;
             ctx.textBaseline = "top";
 
-            // 🌫 Shadow
+            // 🌫️ Shadow
             if (textShadow?.enabled) {
               ctx.shadowColor = textShadow.color;
               ctx.shadowBlur = textShadow.blur;
@@ -105,8 +165,8 @@ function PosterCanvas({
               ctx.shadowOffsetY = 0;
             }
 
-            // 📍 Text position
-            const textX =
+            // 🎯 Positioning
+            let textX =
               textAlign === "left"
                 ? 50
                 : textAlign === "right"
@@ -114,6 +174,7 @@ function PosterCanvas({
                 : canvas.width / 2;
             const textY = 40;
 
+            // 📝 Draw shop name and get next Y
             const taglineStartY = wrapText(
               ctx,
               shopName,
@@ -123,29 +184,18 @@ function PosterCanvas({
               lineHeight
             );
 
-            // ✨ Tagline
+            // ✨ Draw tagline below shop name
             if (tagline) {
               ctx.font = `normal ${fontSize * 0.4}px '${taglineFont}'`;
-              ctx.fillStyle = taglineColor || "#fce903";
-              wrapText(
-                ctx,
-                tagline,
-                textX,
-                taglineStartY,
-                500,
-                lineHeight * 0.6
-              );
-            }
+ctx.fillStyle = taglineColor || "#fce903";
 
-            // 🖼️ Export Image
-            if (onExportImage) {
-              const dataUrl = canvas.toDataURL("image/png");
-              onExportImage(dataUrl); // 👈 pass base64 URL back to parent
+              wrapText(ctx, tagline, textX, taglineStartY, 500, lineHeight * 0.6);
             }
           };
         };
       };
     };
+    
 
     loadFontAndDraw();
   }, [
@@ -166,7 +216,7 @@ function PosterCanvas({
     fontColor,
     vendorPosition,
     productPosition,
-    onExportImage, // 👈 trigger redraw on change
+    imgShadow,
   ]);
 
   return (

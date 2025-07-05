@@ -49,6 +49,14 @@ function App() {
   const [templateId, setTemplateId] = useState("template1");
   const [removeBg, setRemoveBg] = useState(true);
 
+  const [imgShadow, setImgShadow] = useState({
+    enabled: true,
+    color: "#000000",
+    blur: 20,
+    alpha: 1, // 💡 new: transparency
+    angle: 45, // 💡 new: direction in degrees
+    distance: 10, // 💡 new: distance in px
+  });
 
   const [renderformImageUrl, setRenderformImageUrl] = useState(null);
 
@@ -62,30 +70,32 @@ function App() {
 
   const handleGenerate = async () => {
     if (!vendorFile && !productFile) {
-      alert("Please upload at least one image (vendor or product) and enter the shop name");
+      alert(
+        "Please upload at least one image (vendor or product) and enter the shop name"
+      );
       return;
     }
     if (!shopName) {
       alert("Please enter the shop name");
       return;
     }
-  
+
     try {
       let vUrl = null;
       let pUrl = null;
-  
+
       if (vendorFile) {
         vUrl = removeBg
           ? await removeBgWithPixian(vendorFile)
           : URL.createObjectURL(vendorFile);
       }
-  
+
       if (productFile) {
         pUrl = removeBg
           ? await removeBgWithPixian(productFile)
           : URL.createObjectURL(productFile);
       }
-  
+
       setVendorImgUrl(vUrl);
       setProductImgUrl(pUrl);
       setPosterKey((prev) => prev + 1);
@@ -94,13 +104,13 @@ function App() {
       console.error(err);
     }
   };
-  
 
   const handleRegenerate = () => {
     setPosterKey((prev) => prev + 1);
   };
 
   return (
+    
     <div
       className="app-container"
       style={{
@@ -112,6 +122,10 @@ function App() {
         backgroundColor: "#000", // fallback
       }}
     >
+      <div className="glass-navbar">
+        <h1>Street Vendor Poster Maker</h1>
+      </div>
+
       {/* 🎯 IMAGE INPUT CARD */}
       <div className="yellow-card">
         <h2>Upload Vendor & Product Images</h2>
@@ -138,15 +152,14 @@ function App() {
           onChange={(e) => setTagline(e.target.value)}
         />
         <label>
-        <input
-        type="checkbox"
-        checked={removeBg}
-        onChange={(e) => setRemoveBg(e.target.checked)}
-        style={{ marginRight: "6px" }}
-        />
-  Remove Background
-</label>
-
+          <input
+            type="checkbox"
+            checked={removeBg}
+            onChange={(e) => setRemoveBg(e.target.checked)}
+            style={{ marginRight: "6px" }}
+          />
+          Remove Background
+        </label>
       </div>
 
       {/* 📏 SIZE CONTROL CARD */}
@@ -229,6 +242,17 @@ function App() {
               style={{ width: "50px" }}
             />
           </div>
+          <div>
+            <label>Text Align:</label>
+            <select
+              value={textAlign}
+              onChange={(e) => setTextAlign(e.target.value)}
+            >
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </div>
         </div>
 
         <label>Font Size: {fontSize}px</label>
@@ -250,76 +274,141 @@ function App() {
           value={lineHeight}
           onChange={(e) => setLineHeight(Number(e.target.value))}
         />
-
-        <label>Text Align:</label>
-        <select
-          value={textAlign}
-          onChange={(e) => setTextAlign(e.target.value)}
-        >
-          <option value="left">Left</option>
-          <option value="center">Center</option>
-          <option value="right">Right</option>
-        </select>
       </div>
 
-      {/* 🌫️ SHADOW SETTINGS */}
       <div className="yellow-card">
-        <h2>Text Shadow</h2>
-        <label>
-          <input
-            type="checkbox"
-            checked={textShadow.enabled}
-            onChange={(e) =>
-              setTextShadow({ ...textShadow, enabled: e.target.checked })
-            }
-          />
-          Add Text Shadow
-        </label>
+        <h2>Shadow Settings</h2>
 
-        {textShadow.enabled && (
-          <div
-            style={{
-              display: "flex",
-              gap: "10px",
-              alignItems: "center",
-              marginTop: "10px",
-            }}
-          >
-            <div>
-              <label>Shadow Color:</label>
-              <br />
+        <div className="shadow-container">
+          {/* TEXT SHADOW SETTINGS */}
+          <div className="shadow-column">
+            <label>
               <input
-                type="color"
-                value={textShadow.color}
+                type="checkbox"
+                checked={textShadow.enabled}
                 onChange={(e) =>
-                  setTextShadow({ ...textShadow, color: e.target.value })
+                  setTextShadow({ ...textShadow, enabled: e.target.checked })
                 }
-                style={{ width: "50px" }}
               />
-            </div>
+              Add Text Shadow
+            </label>
 
-            <div>
-              <label>Blur:</label>
-              <br />
-              <input
-                type="number"
-                min="0"
-                max="10"
-                value={textShadow.blur}
-                onChange={(e) =>
-                  setTextShadow({
-                    ...textShadow,
-                    blur: parseInt(e.target.value),
-                  })
-                }
-                style={{ width: "60px" }}
-              />
-            </div>
+            {textShadow.enabled && (
+              <>
+                <label>Text Shadow Color:</label>
+                <input
+                  type="color"
+                  value={textShadow.color}
+                  onChange={(e) =>
+                    setTextShadow({ ...textShadow, color: e.target.value })
+                  }
+                />
+
+                <label>Text Shadow Blur (0–10):</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="10"
+                  value={textShadow.blur}
+                  onChange={(e) =>
+                    setTextShadow({
+                      ...textShadow,
+                      blur: parseInt(e.target.value),
+                    })
+                  }
+                />
+              </>
+            )}
           </div>
-        )}
+
+          {/* IMAGE SHADOW SETTINGS */}
+          <div className="shadow-column">
+            <label>
+              <input
+                type="checkbox"
+                checked={imgShadow.enabled}
+                onChange={(e) =>
+                  setImgShadow({ ...imgShadow, enabled: e.target.checked })
+                }
+              />
+              Add Image Shadow
+            </label>
+
+            {imgShadow.enabled && (
+              <>
+                <label>Image Shadow Color:</label>
+                <input
+                  type="color"
+                  value={imgShadow.color}
+                  onChange={(e) =>
+                    setImgShadow({ ...imgShadow, color: e.target.value })
+                  }
+                />
+
+                <label>Transparency (0–100):</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={Math.round(imgShadow.alpha * 100)}
+                  onChange={(e) =>
+                    setImgShadow({
+                      ...imgShadow,
+                      alpha: parseInt(e.target.value) / 100,
+                    })
+                  }
+                />
+
+                <label>Shadow Blur:</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={imgShadow.blur}
+                  onChange={(e) =>
+                    setImgShadow({
+                      ...imgShadow,
+                      blur: parseInt(e.target.value),
+                    })
+                  }
+                />
+
+                <label>Shadow Angle (degrees):</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="360"
+                  value={imgShadow.angle}
+                  onChange={(e) =>
+                    setImgShadow({
+                      ...imgShadow,
+                      angle: parseInt(e.target.value),
+                    })
+                  }
+                />
+
+                <label>Shadow Distance:</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="50"
+                  value={imgShadow.distance}
+                  onChange={(e) =>
+                    setImgShadow({
+                      ...imgShadow,
+                      distance: parseInt(e.target.value),
+                    })
+                  }
+                />
+              </>
+            )}
+          </div>
+        </div>
+
 
         <button onClick={handleGenerate}>Generate Poster</button>
       </div>
+
       {/* 📏 SIZE + POSITION CONTROL CARD */}
       <div className="yellow-card">
         <h2>Adjust Image Sizes & Positions</h2>
@@ -482,6 +571,7 @@ function App() {
             productPosition={productPosition}
             tagline={tagline}
             templateId={templateId}
+            imgShadow={imgShadow}
           />
           <div
             style={{
@@ -518,29 +608,28 @@ function App() {
               >
                 Download Poster
               </button>
-
             </div>
           </div>
         </div>
       )}
-      
+
       {renderformImageUrl && (
-                <div className="yellow-card output-card">
-                  <h2>Business Card Mockup</h2>
-                  <img
-                    src={renderformImageUrl}
-                    alt="Business Card"
-                    style={{
-                      width: "100%",
-                      maxWidth: "500px",
-                      borderRadius: "12px",
-                    }}
-                  />
-                  <a href={renderformImageUrl} download="business_card.png">
-                    <button>Download Business Card</button>
-                  </a>
-                </div>
-              )}
+        <div className="yellow-card output-card">
+          <h2>Business Card Mockup</h2>
+          <img
+            src={renderformImageUrl}
+            alt="Business Card"
+            style={{
+              width: "100%",
+              maxWidth: "500px",
+              borderRadius: "12px",
+            }}
+          />
+          <a href={renderformImageUrl} download="business_card.png">
+            <button>Download Business Card</button>
+          </a>
+        </div>
+      )}
     </div>
   );
 }
